@@ -1,11 +1,11 @@
 <p align="center">
-    <img src="https://img.shields.io/badge/symptom--trace-20230525.2-red.svg" alt="vue">
+    <img src="https://img.shields.io/badge/symptom--trace-20230920.2-red.svg" alt="vue">
     <img src="https://img.shields.io/badge/element--ui-2.7.0-brightgreen.svg" alt="element-ui">
-    <img src="https://img.shields.io/badge/node-14.16.1-brightgreen.svg" alt="element-ui">
+    <img src="https://img.shields.io/badge/node-16.20.1-brightgreen.svg" alt="element-ui">
 </p>
 
 ## 简介
-[SymptomSquirrel](https://medical.symptomtrace.com/) 是一款由[SymptomTrace](https://symptomtrace.com/)提供的醫療日誌後台系統，透過固定時間記錄，智能分析病情病徵，提供醫生判定標準，並持續追蹤。
+由[SymptomTrace](https://symptomtrace.com/)提供的醫療日誌後台系統，透過固定時間記錄，智能分析病情病徵，提供醫生判定標準，並持續追蹤。
 
 ## 前序准备
 
