@@ -4,12 +4,12 @@
     <img src="https://img.shields.io/badge/node-16.20.1-brightgreen.svg" alt="element-ui">
 </p>
 
-## 简介
+## 簡介
 [SymptomTrace]是一個醫療日誌APP的後台系統。
 
-## 前序准备
+## 前序準備
 
-需要在本地安装 [node](http://nodejs.org/) v16 以上 和 [git](https://git-scm.com/)。本项目技术栈基于 [ES2015+](http://es6.ruanyifeng.com/)、[vue](https://cn.vuejs.org/index.html)、[vuex](https://vuex.vuejs.org/zh-cn/)、[vue-router](https://router.vuejs.org/zh-cn/) 、[vue-cli](https://github.com/vuejs/vue-cli) 、[axios](https://github.com/axios/axios) 和 [element-ui](https://github.com/ElemeFE/element)。
+需要在本地安裝 [node](http://nodejs.org/) v16 以上 和 [git](https://git-scm.com/)。本項目技術棧基於 [ES2015+](http://es6.ruanyifeng.com/)、[vue](https://cn.vuejs.org/index.html)、[vuex](https://vuex.vuejs.org/zh-cn/)、[vue-router](https://router.vuejs.org/zh-cn/) 、[vue-cli](https://github.com/vuejs/vue-cli) 、[axios](https://github.com/axios/axios) 和 [element-ui](https://github.com/ElemeFE/element)。
 
 
 ## 功能
@@ -27,33 +27,33 @@
 - 系統資訊
 ```
 
-## 开发
+## 開發
 
-# 进入项目目录
+# 進入項目目錄
 cd InspireMedical
 
-# 安装依赖
+# 安裝依賴
 npm install
 
-# 启动服务
+# 啟動服務
 npm run dev
 ```
 
-浏览器访问 http://localhost:9527
+瀏覽器訪問 http://localhost:9527
 
 ## 其它
 
 ```bash
-# 预览发布环境效果
+# 預覽發布環境效果
 npm run preview
 
-# 预览发布环境效果 + 静态资源分析
+# 預覽發布環境效果 + 靜態資源分析
 npm run preview -- --report
 
-# 代码格式检查
+# 代碼格式檢查
 npm run lint
 
-# 代码格式检查并自动修复
+# 代碼格式檢查並自動修覆
 npm run lint -- --fix
 ```
 
