@@ -5,11 +5,11 @@
 </p>
 
 ## 简介
-由[SymptomTrace](https://symptomtrace.com/)提供的醫療日誌後台系統，透過固定時間記錄，智能分析病情病徵，提供醫生判定標準，並持續追蹤。
+[SymptomTrace]是一個醫療日誌APP的後台系統。
 
 ## 前序准备
 
-你需要在本地安装 [node](http://nodejs.org/) v16 以上 和 [git](https://git-scm.com/)。本项目技术栈基于 [ES2015+](http://es6.ruanyifeng.com/)、[vue](https://cn.vuejs.org/index.html)、[vuex](https://vuex.vuejs.org/zh-cn/)、[vue-router](https://router.vuejs.org/zh-cn/) 、[vue-cli](https://github.com/vuejs/vue-cli) 、[axios](https://github.com/axios/axios) 和 [element-ui](https://github.com/ElemeFE/element)。
+需要在本地安装 [node](http://nodejs.org/) v16 以上 和 [git](https://git-scm.com/)。本项目技术栈基于 [ES2015+](http://es6.ruanyifeng.com/)、[vue](https://cn.vuejs.org/index.html)、[vuex](https://vuex.vuejs.org/zh-cn/)、[vue-router](https://router.vuejs.org/zh-cn/) 、[vue-cli](https://github.com/vuejs/vue-cli) 、[axios](https://github.com/axios/axios) 和 [element-ui](https://github.com/ElemeFE/element)。
 
 
 ## 功能
