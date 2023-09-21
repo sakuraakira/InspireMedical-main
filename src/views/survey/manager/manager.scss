@@ -1,0 +1,45 @@
+.manager {
+  .dialog-main {
+    display: flex;
+    flex: 0 1 auto;
+    flex-wrap: wrap;
+
+    &__left {
+      width: 550px;
+
+      .draggable{
+        width: fit-content;
+      }
+    }
+
+    &__right {
+      width: 350px;
+      margin: 0 auto;
+
+      section {
+        &.question-template {
+          //position: sticky;
+          //top: 0;
+        }
+      }
+    }
+
+    .switch-group {
+      svg {
+        margin-left: 10px;
+        vertical-align: -0.4em;
+      }
+    }
+  }
+
+  .question-preview {
+    //position: sticky;
+    //top: 0;
+    margin-top: 12px;
+    background: #f3f3f3;
+    padding: 12px;
+    border-radius: 6px;
+    color: #000000;
+    height: 350px;
+  }
+}

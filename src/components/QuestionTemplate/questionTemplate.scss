@@ -1,0 +1,41 @@
+.question-template {
+
+  &__container {
+    margin: 6px;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background: #faf1e7;
+    border-radius: 6px;
+
+    &__correct_answer{
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+  }
+
+  &__correct_answer {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background: #faf1e7;
+    border-top: black dashed 1px;
+    color: #FFFFFF;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+  }
+
+  &__content {
+    padding: 12px;
+    background: #ffffff;
+  }
+
+  .aplayer {
+    .aplayer-pic {
+      background: initial !important;
+    }
+  }
+}

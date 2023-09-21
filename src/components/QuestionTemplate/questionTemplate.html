@@ -1,0 +1,117 @@
+<section class="question-template">
+  <div class="question-template__container">
+    <div class="question-template__header"
+         :class=""
+    >
+      <span style=" flex: 1;">{{ question.QuestionText }}</span>
+      <svg-icon icon-class="check-circle" style="color: #2ac06d; font-size: 30px;" v-if="correct"/>
+      <svg-icon icon-class="wrong" style="color: #C03639; font-size: 30px;"
+                v-else-if="!correct && question.CorrectAnswer"
+      />
+    </div>
+    <div :style="{background: correct ? '#29C06D' : '#C03638'}"
+         class="question-template__correct_answer"
+         v-if="question.CorrectAnswer"
+    >
+      <span>{{ correctAnswer }}</span>
+    </div>
+    <div class="question-template__content"
+         :style="{display: question.AnswerType === 6 || question.AnswerType === 4 ? 'flex' : ''}"
+    >
+      <vue-core-video-player :autoplay="false"
+                             v-if="isVideo"
+                             :loop="false"
+                             :src="randomMediaLink"
+      />
+      <el-image
+        style="width: 100%; height: 300px;"
+        :src="randomMediaLink"
+        fit="scale-down"
+        v-else-if="isVideo === false && preview && question.MediaLinks !== undefined && question.MediaLinks.length > 0"
+      />
+      <el-image
+        style="width: 100%; height: 300px;"
+        :src="question.MediaLink"
+        fit="scale-down"
+        v-else-if="!preview && question.MediaLink !== null"
+      />
+      <div
+        :style="{margin: question.AnswerType === 6 || question.AnswerType === 4 ? '12px' : '', width: question.AnswerType === 6 ? '50%' : ''}"
+      >
+        <!--是非-->
+        <div v-if="question.AnswerType === 1">
+          <el-radio v-model="question.Answer" label="1" :disabled="!preview">Yes</el-radio>
+          <el-radio v-model="question.Answer" label="0" :disabled="!preview">No</el-radio>
+        </div>
+        <!--填空-->
+        <div v-if="question.AnswerType === 2">
+          <bs-input v-model="question.Answer" :disabled="!preview"/>
+        </div>
+        <!--單選-->
+        <div v-if="question.AnswerType === 3" style="padding-bottom: 12px;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); grid-gap: 10px;">
+            <div v-for="(choice, index) in choices" :key="index">
+              <div style="display: block; width: 100%; height: 100%;">
+                <el-image
+                  style="width: 100%; height: auto;"
+                  :src="choice.MediaLink"
+                  fit="fit"
+                  v-if="choice.MediaLink"
+                />
+              </div>
+              <el-radio v-model="question.Answer" :label="preview ? index : choice.ChoiceID.toString()"
+                        :disabled="!preview"
+              >
+                {{ choice.AnswerText }}
+              </el-radio>
+            </div>
+          </div>
+        </div>
+        <!--繪圖-->
+        <div v-if="question.AnswerType === 4" style="padding-bottom: 12px;">
+          <el-image
+            style="width: 100%; height: auto;"
+            :src="question.Answer"
+            fit="scale-down"
+            v-if="!preview"
+          />
+        </div>
+        <!--錄音-->
+        <div v-if="question.AnswerType === 5" style="padding-bottom: 12px;">
+          <aplayer ref="AudioPlayer" :loop.sync="audio.loop" :audio="audioFile" onplaying="switchAudioPlayStatus(true)"
+                   onended="switchAudioPlayStatus(false)" onpause="switchAudioPlayStatus(false)"
+          />
+          <!--          <AudioPlayer v-if="!preview && question.Answer !== ''" :music="audioFile"/>-->
+        </div>
+        <!--影片-->
+        <div v-if="question.AnswerType === 6" style="padding-bottom: 12px;">
+          <vue-core-video-player v-if="!preview"
+                                 :autoplay="false"
+                                 :loop="false"
+                                 :src="question.Answer"
+          />
+        </div>
+        <!--比重-->
+        <div v-if="question.AnswerType === 7">
+          <div>
+            <span style="display: block; text-align: end;">Total Score: {{ weightScore }}/100</span>
+            <div v-for="(choice, index) in choices" :key="index"
+                 style="display: flex; flex: 0 1 auto; align-items: center; margin-right: 12px;"
+            >
+              <span style="width: 80px;">{{ choice.AnswerText }}</span>
+              <el-slider v-model="weightData[index]"
+                         :marks="marks"
+                         :show-tooltip="true"
+                         :disabled="!preview"
+                         ref="slider"
+                         style="width: 100%;"
+                         @input="(data)=>{handleSliderChanged(index, data)}"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+

@@ -1,0 +1,157 @@
+<section class="manager">
+  <div class="app-container calendar-list-container">
+    <div class="filter-container">
+      <el-table :data="tableData" v-loading="paging.isLoading" :element-loading-text="$t('table.loading')"
+                :cell-style="getCssStyle" @sort-change="onSortChange" border fit
+                highlight-current-row style="width: 100%">
+        <el-table-column prop="PID" :label="$t('patient.pid')" sortable>
+          <template slot-scope="scope">{{ scope.row.PID }}</template>
+        </el-table-column>
+        <el-table-column prop="Name" :label="$t('patient.patient_name')" sortable>
+          <template slot-scope="scope">
+            <a class="link-type" @click="handlerPatientDetailDialog(scope.row)">{{ scope.row.Name }}</a>
+          </template>
+        </el-table-column>
+        <el-table-column prop="Phone" :label="$t('patient.phone')" sortable>
+          <template slot-scope="scope">{{ scope.row.Phone }}</template>
+        </el-table-column>
+        <el-table-column prop="Condition" :label="$t('patient.condition')" sortable>
+          <template slot-scope="scope">{{ $t(parseCondition(scope.row.Condition)) }}</template>
+        </el-table-column>
+        <el-table-column prop="HasCaregiver" :label="$t('patient.has_caregiver')" sortable>
+          <template slot-scope="scope">
+            {{ $t(parseHasCaregiver(scope.row.HasCaregiver)) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="RequestCount" :label="$t('patient.comment')" sortable>
+          <template slot-scope="scope">{{ scope.row.RequestCount }}</template>
+        </el-table-column>
+        <el-table-column prop="CurrrentSurvey" :label="$t('patient.current_survey')" sortable>
+          <template slot-scope="scope"></template>
+        </el-table-column>
+        <el-table-column prop="SurveyCount" :label="$t('patient.response')" sortable>
+          <template slot-scope="scope">{{ scope.row.SurveyCount }}</template>
+        </el-table-column>
+        <el-table-column prop="LastRequestTime" :label="$t('patient.last_response')" sortable>
+          <template slot-scope="scope">{{ scope.row.LastRequestTime | parseToMonth }}</template>
+        </el-table-column>
+        <el-table-column prop="CreatedTime" :label="$t('patient.created')" sortable>
+          <template slot-scope="scope">{{ scope.row.CreatedTime | parseToMonth }}</template>
+        </el-table-column>
+        <el-table-column prop="Download">
+          <template slot-scope="scope">
+            <a class="link-type" @click="handlerPatientDownload(scope.row.PID)">{{ $t('patient.download') }}</a>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <bs-pagination :current-page="page" :page-size="paging.query.pageSize" :total="paging.totalElements"
+                     @on-change-page="handleCurrentChange" @on-change-page-size="handleSizeChange"/>
+    </div>
+  </div>
+
+  <!-- 病患詳細資料彈跳視窗 -->
+  <el-dialog :title="patientDetailDialogForm.title" :visible.sync="patientDetailDialogForm.isVisible"
+             v-if="patientDetailDialogForm.isVisible"
+             :close-on-click-modal="false" :show-close="true" width="80%">
+    <div class="patient-info">
+      <el-form ref="dataForm" :model="patientDetailDialogForm.data" label-position="left" label-width="55px">
+        <div class="patient-info__top">
+          <div class="patient-info__top__left">
+            <div class="input-container">
+              <el-avatar :size="80" :src="patientDetailDialogForm.data.PhotoUrl">
+                <img src="/images/default_avatar.png" />
+              </el-avatar>
+            </div>
+            <div class="patient-info__top__left__info">
+              <el-form-item :label="$t('patient.name')">{{ patientDetailDialogForm.data.Name }}</el-form-item>
+              <el-form-item :label="$t('patient.phone')">{{ patientDetailDialogForm.data.Phone }}</el-form-item>
+            </div>
+          </div>
+          <div class="patient-info__top__right">
+            <div class="profile-wrapper">
+              <div
+                v-for="(caregiver, index) in patientDetailDialogForm.caregiver"
+                :key="index"
+                class="profile-wrapper__item"
+                :class="[caregiver.isSelected ? 'selected' : '']"
+                @click="handleCaregiver(caregiver)"
+              >
+                <el-avatar :size="80" :src="caregiver.PhotoUrl">
+                  <img src="/images/default_avatar.png" />
+                </el-avatar>
+                <div class="user-details">
+                  <span class="name">{{caregiver.UserName}}</span>
+                  <span class="role">{{caregiver.RoleName}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </el-form>
+
+      <el-table :data="answerTableData" v-loading="patientDetailDialogForm.isLoading"
+                :element-loading-text="$t('table.loading')"
+                :cell-style="getCssStyle" @sort-change="onSortChange" border fit
+                highlight-current-row style="width: 100%">
+
+        <el-table-column prop="Name" :label="$t('patient.answer_questionnaire.submit_time')">
+          <template slot-scope="scope">
+            {{ scope.row.SubmitTime | parseToMonth }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="SurveyName" :label="$t('patient.answer_questionnaire.survey_name')">
+          <template slot-scope="scope">
+            <a class="link-type" @click="handlerSurveyResponseDialog(scope.row)">{{ scope.row.SurveyName }}</a>
+          </template>
+        </el-table-column>
+        <el-table-column prop="Condition" :label="$t('patient.answer_questionnaire.condition')">
+          <!--          <template slot-scope="scope">{{ scope.row.RequestCount }}</template>-->
+        </el-table-column>
+        <el-table-column prop="Respondent" :label="$t('patient.answer_questionnaire.respondent')">
+          <!--          <template slot-scope="scope">{{ scope.row.RequestCount }}</template>-->
+        </el-table-column>
+        <el-table-column prop="Score" :label="$t('patient.answer_questionnaire.score')">
+          <!--          <template slot-scope="scope">{{ scope.row.RequestCount }}</template>-->
+        </el-table-column>
+        <el-table-column prop="Download" :label="$t('patient.answer_questionnaire.download')">
+          <!--          <template slot-scope="scope">{{ scope.row.RequestCount }}</template>-->
+        </el-table-column>
+        <el-table-column prop="Chart" :label="$t('patient.chart')">
+          <template slot-scope="scope">
+            <a class="link-type" @click="handlerSurveyChartDialog(scope.row)">
+              <svg-icon icon-class="chart"/>
+            </a>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+
+    <div slot="footer" class="dialog-footer">
+      <bs-submit-button @click="patientDetailDialogForm.isVisible = false"/>
+    </div>
+  </el-dialog>
+
+  <!-- 問券Chart彈跳視窗 -->
+  <el-dialog :title="$t(chartDetailDialogForm.title)" :visible.sync="chartDetailDialogForm.isVisible"
+             v-if="chartDetailDialogForm.isVisible"
+             :close-on-click-modal="false" :show-close="true" width="80%">
+    <div ref="chart" v-if="chartDetailDialogForm.isVisible" :class="chart.className"
+         :style="{height:chart.height, width:chart.width}"/>
+    <div slot="footer" class="dialog-footer">
+      <bs-submit-button @click="chartDetailDialogForm.isVisible = false"/>
+    </div>
+  </el-dialog>
+
+  <!-- 問券Response彈跳視窗 -->
+  <el-dialog :title="chartResponseDialog.title" :visible.sync="chartResponseDialog.isLoading"
+             v-if="chartResponseDialog.isVisible"
+             :before-close="handleResponseDialogBeforeClose"
+             :close-on-click-modal="false" :show-close="true">
+    <QuestionTemplate v-for="(item, index) in chartResponseDialog.data" :key="index" :question="item" :preview="false"/>
+    <div slot="footer" class="dialog-footer">
+      <bs-submit-button @click="chartResponseDialog.isVisible = false"/>
+    </div>
+  </el-dialog>
+</section>
+

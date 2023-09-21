@@ -1,0 +1,292 @@
+<section class="question">
+  <div class="app-container calendar-list-container">
+    <div class="filter-container">
+      <div class="filter-container">
+        <bs-button :title="$t('system.create')" @click="handleEditDialogShow()"/>
+      </div>
+
+      <el-table :data="tableData" v-loading="paging.isLoading" :element-loading-text="$t('table.loading')"
+                :cell-style="getCssStyle" @sort-change="onSortChange" border fit
+                highlight-current-row style="width: 100%"
+      >
+        <el-table-column prop="id" label="ID" sortable min-width="300%" v-if="false">
+          <template slot-scope="scope">{{ scope.row.QuestionID }}</template>
+        </el-table-column>
+        <el-table-column prop="SurveyName" :label="$t('survey.question')" sortable min-width="300%">
+          <template slot-scope="scope">
+            <a class="link-type" @click="handleEditDialogShow(scope.row)">{{ scope.row.QuestionText }}</a>
+          </template>
+        </el-table-column>
+        <el-table-column prop="Condition" :label="$t('survey.condition')" sortable>
+          <template slot-scope="scope">{{ $t(parseCondition(scope.row.ConditionID)) }}</template>
+        </el-table-column>
+        <el-table-column prop="AnswerType" :label="$t('survey.answer_type.title')" sortable>
+          <template slot-scope="scope">{{ $t(parseAnswerType(scope.row.AnswerType)) }}</template>
+        </el-table-column>
+        <el-table-column prop="Respondent" :label="$t('survey.respondent')" sortable>
+          <template slot-scope="scope">{{ $t(parseRespondent(scope.row.RespondentType)) }}</template>
+        </el-table-column>
+        <el-table-column prop="Questions" :label="$t('survey.create_time')" sortable>
+          <template slot-scope="scope">{{ scope.row.TimeC | parseToMonth }}</template>
+        </el-table-column>
+        <el-table-column prop="Created" :label="$t('survey.update_time')" sortable>
+          <template slot-scope="scope">{{ scope.row.TimeU | parseToMonth }}</template>
+        </el-table-column>
+        <el-table-column prop="Modified" :label="$t('survey.currently_use')" sortable>
+          <template slot-scope="scope">{{ scope.row.UsingSurveyCount }}</template>
+        </el-table-column>
+        <el-table-column prop="Prescriptions" :label="$t('survey.created')" sortable>
+          <template slot-scope="scope">{{ scope.row.NameC }}</template>
+        </el-table-column>
+      </el-table>
+
+      <bs-pagination :current-page="page" :page-size="paging.query.pageSize" :total="paging.totalElements"
+                     @on-change-page="handleCurrentChange" @on-change-page-size="handleSizeChange"
+      />
+    </div>
+  </div>
+
+  <!-- 新增修改彈跳視窗 -->
+  <el-dialog :title="$t(editDialog.title)" :visible.sync="editDialog.isVisible" v-if="editDialog.isVisible"
+             :close-on-click-modal="false" :show-close="true" width="80%" ref="questionDialog"
+  >
+    <div class="dialog-main">
+      <div class="dialog-main__left">
+        <el-form :rules="editDialog.rules" ref="dataForm" :model="editDialog.data" label-position="left"
+                 label-width="200px"
+        >
+          <!-- 病徵 -->
+          <el-form-item :label="$t('survey.condition')" prop="ConditionID">
+            <bs-select v-model="editDialog.data.ConditionID" :options="ConditionOptions"
+                       :placeholder="$t('question.condition_placeholder')"
+                       :disabled="editDialog.isEdit"
+                       filterable
+            />
+          </el-form-item>
+          <!-- 回答者 -->
+          <el-form-item :label="$t('survey.respondent')" prop="RespondentType">
+            <bs-select v-model="editDialog.data.RespondentType" :options="RespondentOptions"
+                       :placeholder="$t('question.respondent_placeholder')"
+                       :disabled="editDialog.isEdit"
+                       filterable
+            />
+          </el-form-item>
+          <!-- 問題名稱 -->
+          <el-form-item :label="$t('survey.question')" prop="QuestionText">
+            <bs-input v-model="editDialog.data.QuestionText"/>
+          </el-form-item>
+          <!-- 圖片 -->
+          <el-form-item :label="$t('question.image')">
+            <el-upload
+              ref="fileDescription"
+              action="/api/surveymanagement/uploadmedia"
+              list-type="picture-card"
+              multiple
+              :headers="serverHeader"
+              :on-preview="handlePreview"
+              :on-remove="handleRemoveSuccess"
+              :on-success="(response, file, fileList) => {return handleUploadSuccess(response, file, fileList);}"
+              v-if="editDialog.data.MediaFileUrls"
+              :file-list="editDialog.data.MediaFileUrls">
+              <i class="el-icon-plus"/>
+            </el-upload>
+          </el-form-item>
+          <!-- 標籤 -->
+          <el-form-item :label="$t('question.topic')" prop="Topics">
+            <bs-select v-model="editDialog.data.TopicIds" :options="TopicOptions"
+                       :placeholder="$t('question.topic_placeholder')"
+                       :multiple="true"
+                       @change="topicOnChanged"
+                       filterable
+            />
+          </el-form-item>
+          <!-- 問題類型 -->
+          <el-form-item :label="$t('question.answer_type')" prop="AnswerType">
+            <bs-select v-model="editDialog.data.AnswerType" :options="AnswerOptions"
+                       :placeholder="$t('question.answer_type_placeholder')"
+                       :disabled="editDialog.isEdit"
+                       filterable
+            />
+          </el-form-item>
+          <!-- 圖片是否顯示於繪圖背景 -->
+          <el-form-item :label="$t('question.image_background')" prop="Topics" v-if="editDialog.data.AnswerType == 4">
+            <div class="switch-group">
+              <bs-switch v-model="editDialog.data.IsBackground"/>
+              <el-tooltip class="item" effect="dark" :content="$t('question.image_background_tooltip')"
+                          placement="bottom"
+              >
+                <svg-icon icon-class="info-circle" class-name="info-circle"/>
+              </el-tooltip>
+            </div>
+          </el-form-item>
+          <!-- 是否設定正確答案 -->
+          <el-form-item :label="$t('question.correct_answer')" prop="CorrectAnswer" v-if="correctAnswerVisible">
+            <el-checkbox style="margin-right: 12px;" v-model="editDialog.isShowCorrectAnswer"/>
+            <el-radio-group v-model="editDialog.data.CorrectAnswer"
+                            v-if="editDialog.isShowCorrectAnswer && editDialog.data.AnswerType === 1"
+            >
+              <el-radio :label="'1'" border>Yes</el-radio>
+              <el-radio :label="'0'" border>No</el-radio>
+            </el-radio-group>
+            <!-- 多選正確答案 -->
+            <!-- <el-radio-group v-model="editDialog.data.CorrectAnswer"-->
+            <!--                 v-else-if="editDialog.isShowCorrectAnswer && editDialog.data.AnswerType === 3">-->
+            <!--   <div v-for="(choice, index) in editDialog.data.Choices" :key="index">-->
+            <!--     <div style="display: block; width: 100%; height: 100%;">-->
+            <!--       <el-image-->
+            <!--         style="width: 100%; height: auto;"-->
+            <!--         :src="choice.MediaLink"-->
+            <!--         fit="fit"-->
+            <!--         v-if="choice.MediaLink"-->
+            <!--       />-->
+            <!--     </div>-->
+            <!--     <el-radio :label="choice.ChoiceID">-->
+            <!--       {{ choice.AnswerText }}-->
+            <!--     </el-radio>-->
+            <!--   </div>-->
+            <!-- </el-radio-group>-->
+            <bs-input style="margin-left: 10px;" v-model="editDialog.data.CorrectAnswer"
+                      v-else-if="editDialog.isShowCorrectAnswer && editDialog.data.AnswerType !== 1"
+            />
+          </el-form-item>
+          <!-- 多選答案 -->
+          <el-form-item :label="$t('question.choose')" prop="Choices"
+                        v-if="editDialog.data.AnswerType == 3 || editDialog.data.AnswerType == 7"
+          >
+            <bs-input v-model="editDialog.multipleAnswer"/>
+            <bs-button style="margin-left: 10px;" :title="$t('system.create')" @click="handleAddedMultipleChoice"/>
+          </el-form-item>
+
+          <div class="draggable">
+            <el-table :data="editDialog.data.Choices" ref="choiceTable" border
+                      highlight-current-row style="width: 100%;"
+                      row-key="ChoiceID"
+                      v-if="editDialog.data.AnswerType == 3"
+            >
+              <el-table-column label="順序" min-width="100%">
+                <template slot-scope="scope">
+                  <div style="text-align: center;">
+                    <svg-icon @click="handleChoiceTableMove(true, scope.$index)" icon-class="arrow-up-solid"
+                              class-name="svg-pointer"
+                    />
+                  </div>
+                  <div style="text-align: center;">
+                    <svg-icon @click="handleChoiceTableMove(false, scope.$index)" icon-class="arrow-down-solid"
+                              class-name="svg-pointer"
+                    />
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column prop="Answer" label="選項" min-width="100%">
+                <template slot-scope="scope">{{ scope.row.AnswerText }}</template>
+              </el-table-column>
+              <el-table-column prop="MediaLink" label="圖片" min-width="50%">
+                <template slot-scope="scope">
+                  <el-image
+                    style="width: auto; height: 100%"
+                    :src="scope.row.MediaLink"
+                    fit="fit"
+                    v-if="scope.row.MediaLink"
+                    @click="handlePreview({url: scope.row.MediaLink})"
+                  />
+                </template>
+              </el-table-column>
+              <el-table-column prop="operation" label="操作" min-width="400%">
+                <template slot-scope="scope">
+                  <div class="table-upload" style="display: flex; flex: 0 1 auto; max-height: 30px;">
+                    <el-upload
+                      style="height: auto; width: auto; line-height: 146px; border: 0"
+                      action="/api/surveymanagement/uploadmedia"
+                      list-type="picture-card"
+                      :headers="serverHeader"
+                      :on-preview="handlePreview"
+                      :on-success="(response, file, fileList) => {return handleUploadMultipleChoiceSuccess(response, file, fileList, scope.row);}"
+                    >
+                      <bs-button style="height: 30px;" :title="$t('question.upload_image')"/>
+                    </el-upload>
+
+                    <bs-button style="margin-left: 10px;" :title="$t('question.delete_image')"
+                               v-if="scope.row.MediaLink"
+                               @click="handleDeleteMultipleChoiceImage(scope.row)"
+                    />
+
+                    <bs-button style="margin-left: 10px;" :title="$t('system.delete')"
+                               @click="handleDeleteMultipleChoice(scope.$index)"
+                    />
+                  </div>
+                </template>
+              </el-table-column>
+            </el-table>
+            <el-table :data="editDialog.data.Choices" ref="choiceTable" border
+                      highlight-current-row style="width: 100%;"
+                      v-if="editDialog.data.AnswerType == 7"
+                      row-key="ChoiceID"
+            >
+              <el-table-column label="順序" min-width="100%">
+                <template slot-scope="scope">
+                  <div style="text-align: center;">
+                    <svg-icon @click="handleChoiceTableMove(true, scope.$index)" icon-class="arrow-up-solid"
+                              class-name="svg-pointer"
+                    />
+                  </div>
+                  <div style="text-align: center;">
+                    <svg-icon @click="handleChoiceTableMove(false, scope.$index)" icon-class="arrow-down-solid"
+                              class-name="svg-pointer"
+                    />
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column prop="Answer" label="選項" min-width="100%">
+                <template slot-scope="scope">{{ scope.row.AnswerText }}</template>
+              </el-table-column>
+              <el-table-column prop="Answer" label="選項" min-width="100%">
+                <template slot-scope="scope">{{ scope.row.AnswerText }}</template>
+              </el-table-column>
+              <el-table-column prop="operation" label="操作" min-width="300%">
+                <template slot-scope="scope">
+                  <div class="table-upload" style="display: flex; flex: 0 1 auto; max-height: 30px;">
+                    <bs-button style="margin-left: 10px;" :title="$t('system.delete')"
+                               @click="handleDeleteMultipleChoice(scope.$index)"
+                    />
+                  </div>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </el-form>
+      </div>
+
+      <div class="dialog-main__right ">
+        <div class="question-preview">
+          <span>Preview</span>
+          <QuestionTemplate :question="editDialog.data"/>
+        </div>
+      </div>
+    </div>
+    <div slot="footer" class="dialog-footer">
+      <bs-submit-button v-if="!editDialog.isEdit" @click="createQuestion"/>
+      <bs-submit-button v-else @click="updateQuestion"/>
+    </div>
+  </el-dialog>
+
+  <!-- 圖片預覽彈跳視窗 -->
+  <el-dialog :visible.sync="previewDialog.isVisible" v-if="previewDialog.isVisible"
+             :close-on-click-modal="false" :show-close="true" width="80%"
+  >
+    <div class="upload-preview">
+      <img :src="previewDialog.data">
+    </div>
+  </el-dialog>
+
+  <!-- 影片預覽彈跳視窗 -->
+  <el-dialog :visible.sync="previewVideoDialog.isVisible" v-if="previewVideoDialog.isVisible"
+             :close-on-click-modal="false" :show-close="true" width="80%"
+  >
+    <div class="upload-preview">
+      <vue-core-video-player :autoplay="false"
+                             :loop="false"
+                             :src="previewVideoDialog.data"/>
+    </div>
+  </el-dialog>
+</section>
+
